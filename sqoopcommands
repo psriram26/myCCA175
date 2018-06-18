@@ -1,0 +1,116 @@
+sqoop import --connect "jdbc:mysql://quickstart.cloudera:3306/products" --username cloudera -password cloudera --table prodlist --target-dir /user/ --as-avrodatafile;
+
+
+sqoop import --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" --username retail_dba --password cloudera --table orders --target-dir /user/cloudera/problem1/orders \
+--as-avrodatafile;
+
+
+
+for importing table into hdfs
+sqoop import --connect "jdbc:mysql://quickstart.cloudera:3306/products" --username root -password cloudera --table prodlist --target-dir /user/sqoptmp -m 1 --as-avrodatafile;
+
+converting the avro folder into dataframe
+val df=sqlContext.read.format("com.databricks.spark.avro").load("/user/sqoptmp")
+
+
+
+sqoop import --connect "jdbc:mysql://quickstart.cloudera:3306/products" --username root -password cloudera --table orderlist --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/sqoptmptwo -m 1 --as-avrodatafile;
+
+val dftwo=sqlContext.read.format("com.databricks.spark.avro").load("/user/sqoptmptwo")
+
+
+val jdf=df.join(dftwo, col("df.pid")===col("dftwo.pid")
+
+
+y
+
+val jdf=df.join(dftwo, df("pid") === dftwo("pid"))
+
+
+joining 
+
+val jdf=df.join(dftwo, "pid")
+
+groupBy
+val gb=jdf.groupBy("pid").count().show()
+
+
+orderby
+
+gdf.orderBy(desc("price")).orderBy("dop").show()
+
+to count total record in a table
+select COUNT(*) from products;		
+
+
+sqoop import using delimeter
+
+sqoop import --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" --username root --password cloudera --table products --target-dir /user/cloudera/products --fields-terminated-by '|' --as-textfile;
+
+
+reading hdfs file into an rdd
+
+val df=sc.textFile("/user/cloudera//problem2/products/products").map(x=> {var d=x.split('|');(d(0).toInt,d(1).toInt,d(2).toString,d(3).toString,d(4).toFloat,d(5).toString)});
+
+before using it as df the rdd has to be mapped into an schema
+
+creating a schema
+
+case class prodschema(ProductID:Integer,Product_CatID:Integer,ProductName:String,ProdDescription:String,ProdPrice:Float,ProdImage:String)
+
+mapping the rdd to schema and converting it to a df
+
+var productsDF = df.map(x=> prodschema(x._1,x._2,x._3,x._4,x._5,x._6)).toDF();
+
+applying filter
+
+val pdf=productsDF.filter("ProdPrice<100")
+
+finding the highes price under each product category
+
+val catdf=productsDF.groupBy("Product_CatID").agg(max("ProdPrice"))
+
+groupBy(countDistinct(col("ProductID"))).count().show()
+		
+overall imp on filtered df 
+
+val resone=pdf.groupBy("Product_CatID").agg(max("ProdPrice"),count("ProductID"),avg("ProdPrice"),min("ProdPrice"))
+
+
+
+	jdf.groupBy(to_date(from_unixtime(col("order_date")/1000)).alias("Order_Date"),col("order_status")).agg(count(col("order_id")),sum(col("order_item_subtotal"))).orderBy(col("Order_Date").desc,col("order_status"),col("sum(order_item_subtotal)")).show()
+
+jdf.groupBy(to_date(from_unixtime(col("order_date")/1000)).alias("Order_Date"),col("order_status")).agg(count(col("order_id")),sum(col("order_item_subtotal"))).orderBy(col("Order_Date").desc,col("order_status"),col("sum(order_item_subtotal)").desc).show()
+
+
+
+
+
+ val sqlres=sqlContext.sql("select to_date(from_unixtime(cast(order_date/1000 as bigint))) as formatted_date,order_status,count(distinct(order_id)) as oid,sum(order_item_subtotal) as total_amount from sjdf group by (from_unixtime(cast(order_date/1000 as bigint))), order_status order by formatted_date desc,order_status, total_amount desc, oid")
+
+sqoop import-all-tables --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" --username root --password cloudera --warehouse-dir=/user/impall -m 8
+
+
+sqoop import --connect jdbc:mysql://quickstart.cloudera:3306/incload --username root --password cloudera --split-by name --table tableone --append --where name <> aaa --target-dir /user/incload
+
+
+--incremental append
+--check-column name
+--last-value aaa
+
+
+
+
+sqoop import --connect jdbc:mysql://quickstart.cloudera:3306/incload --username root --password 	cloudera --split-by name --table tableone --incremental append --check-column id --last-value 121 --target-dir /user/incloadone
+
+export with update
+
+sqoop export --connect jdbc:mysql://quickstart.cloudera:3306/products --username root --password cloudera --table prodlist --export-dir /user/sqoopimport --update-mode allowinsert --update-key pid
+
+
+sqoop import --connect jdbc:mysql://quickstart.cloudera:3306/products --username root --password cloudera --table dummy --hive-import --hive-table dummy --hive-overwrite
+
+
+
+sqoop import --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" --username root --password cloudera --table products --target-dir /user/withterminatedby --lines-terminated-by ':' --fields-terminated-by '||'
+
